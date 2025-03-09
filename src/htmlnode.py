@@ -30,7 +30,7 @@ class LeafNode(HTMLNode):
 
 
     def to_html(self):
-        return f"<{self.tag}{self.props_to_html()}>{self.value}</{self.tag}>"
+        return f"<{self.tag}{self.props_to_html()}>{self.value if self.value != None else ''}</{self.tag}>"
 
 
 class ParentNode(HTMLNode):
@@ -43,4 +43,5 @@ class ParentNode(HTMLNode):
             raise ValueError("Parent nodes require tags")
         if not self.children:
             raise ValueError("Parent nodes must have associated children")
-        return f"<{self.tag}>{' '.join(list(map(lambda x: x.to_html(), self.children)))}</{self.tag}>"
+        inner = ''.join(list(map(lambda x: x.to_html(), self.children)))
+        return f"<{self.tag}>{inner if inner != None else ''}</{self.tag}>"

@@ -1,5 +1,6 @@
 from textnode import TextNode, TextType
 from htmlnode import HTMLNode, LeafNode, ParentNode
+import re
 
 
 def main():
@@ -25,5 +26,38 @@ def text_node_to_html_node(text_node):
             raise TypeError()
 
 
+def split_nodes_delimiter(old_nodes, delimiter, text_type):
+    new_nodes = []
+    next_special = False
+    search_term = f"{delimiter}[^{delimiter}]*{delimiter}"
+    for node in old_nodes:
+        matches = re.findall(search_term, node.text)
+        remaining_text = re.sub(search_term, "|;&", node.text)
+        match_num = 0
+        for i, term in enumerate(remaining_text.split("|;&")):
+            if i == 0 and term == "":
+                new_nodes.append(TextNode(re.sub(delimiter, "", matches[match_num]), text_type))
+                match_num += 1
+            else:
+                if term == "":
+                    continue
+                new_nodes.append(TextNode(term, TextType.TEXT))
+                if match_num < len(matches):
+                    new_nodes.append(TextNode(re.sub(delimiter, "", matches[match_num]), text_type))
+                    match_num += 1
+
+    return new_nodes
+
+
+def extract_markdown_images(text):
+    pattern = r"!\[([^\]]*)\]\(([^\)]*)\)"
+    return re.findall(pattern, text)
+
+
+def extract_markdown_links(text):
+    pattern = r"\[([^\]]*)\]\(([^\)]*)\)"
+    return re.findall(pattern, text)
+
+
 if __name__ == "__main__":
-    main()
+    print(extract_markdown_links("[lmao](this is a url) first and then [kek](this is a second url)"))

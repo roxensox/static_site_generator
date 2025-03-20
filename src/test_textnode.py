@@ -228,8 +228,8 @@ This is the same paragraph on a new line
 """
         self.assertEqual([b2bt(i) for i in m2b(md)],
                          [
-                         BlockType.NORMAL,
-                         BlockType.NORMAL,
+                         BlockType.PARAGRAPH,
+                         BlockType.PARAGRAPH,
                          BlockType.UNORDERED_LIST
                          ])
 
@@ -266,12 +266,74 @@ This is the same paragraph on a new line
                          BlockType.ORDERED_LIST,
                          BlockType.QUOTE,
                          BlockType.HEADING,
-                         BlockType.NORMAL,
+                         BlockType.PARAGRAPH,
                          BlockType.HEADING,
-                         BlockType.NORMAL,
-                         BlockType.NORMAL
+                         BlockType.PARAGRAPH,
+                         BlockType.PARAGRAPH
                          ])
 
+    def test_m2html(self):
+        test_func = sb.markdown_to_html_node
+        md = """
+```
+This is text that _should_ remain
+the **same** even with inline stuff
+```
+"""
+
+        node = test_func(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            "<div><pre><code>This is text that _should_ remain\nthe **same** even with inline stuff</code></pre></div>",
+        )
+
+        md = "## Hello, **world**"
+        node = test_func(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            "<div><h2>Hello, <b>world</b></h2></div>"
+        )
+
+        md = """- LubyDoo
+- Luna
+- The Lubinator
+- The Lube Father
+"""
+        node = test_func(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            "<div><ul><li>LubyDoo</li><li>Luna</li><li>The Lubinator</li><li>The Lube Father</li></ul></div>"
+        )
+
+        md = """1. LubyDoo
+2. Luna
+3. The Lubinator
+500. The Lube Father
+"""
+        node = test_func(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            "<div><ol><li>LubyDoo</li><li>Luna</li><li>The Lubinator</li><li>The Lube Father</li></ol></div>"
+        )
+        md = """
+This is **bolded** paragraph
+text in a p
+tag here
+
+This is another paragraph with _italic_ text and `code` here
+
+"""
+
+        node = test_func(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            "<div><p>This is <b>bolded</b> paragraph text in a p tag here</p><p>This is another paragraph with <i>italic</i> text and <code>code</code> here</p></div>",
+        )
 
 
 if __name__ == "__main__":

@@ -30,7 +30,10 @@ class LeafNode(HTMLNode):
 
 
     def to_html(self):
-        return f"<{self.tag}{self.props_to_html()}>{self.value if self.value != None else ''}</{self.tag}>"
+        if not self.tag:
+            return self.value
+        else:
+            return f"<{self.tag}{self.props_to_html()}>{self.value if self.value != None else ''}</{self.tag}>"
 
 
 class ParentNode(HTMLNode):

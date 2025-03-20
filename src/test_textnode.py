@@ -3,6 +3,8 @@ import unittest
 from textnode import TextNode, TextType
 import splitter_funcs
 from splitter_funcs import text_node_to_html_node, split_nodes_delimiter
+import split_block as sb
+from block import BlockType
 
 
 class TestTextNode(unittest.TestCase):
@@ -190,6 +192,85 @@ class TestTextNode(unittest.TestCase):
             TextNode(" sure that it works.", TextType.TEXT)
         ]
         self.assertEqual(test, should_be)
+
+    def test_markdown_to_blocks(self):
+        test_func = sb.markdown_to_blocks
+        md = """
+This is **bolded** paragraph
+
+This is another paragraph with _italic_ text and `code` here
+This is the same paragraph on a new line
+
+- This is a list
+- with items
+"""
+        blocks = test_func(md)
+        self.assertEqual(
+        blocks,
+        [
+            "This is **bolded** paragraph",
+            "This is another paragraph with _italic_ text and `code` here\nThis is the same paragraph on a new line",
+            "- This is a list\n- with items",
+        ],
+        )
+
+    def test_block_to_block_type(self):
+        m2b = sb.markdown_to_blocks
+        b2bt = sb.block_to_block_type
+        md = """
+This is **bolded** paragraph
+
+This is another paragraph with _italic_ text and `code` here
+This is the same paragraph on a new line
+
+- This is a list
+- with items
+"""
+        self.assertEqual([b2bt(i) for i in m2b(md)],
+                         [
+                         BlockType.NORMAL,
+                         BlockType.NORMAL,
+                         BlockType.UNORDERED_LIST
+                         ])
+
+        md = """
+```This is a code block```
+
+- This
+- Is
+- An
+- Unordered
+- List
+
+1. And
+2. This
+1234. One
+4. Is ordered
+
+> This is a 
+>Quote block
+
+# HEADING HERE
+
+#######This one is normal though
+
+## Heading
+
+#Normal
+
+# """
+        self.assertEqual([b2bt(i) for i in m2b(md)],
+                         [
+                         BlockType.CODE,
+                         BlockType.UNORDERED_LIST,
+                         BlockType.ORDERED_LIST,
+                         BlockType.QUOTE,
+                         BlockType.HEADING,
+                         BlockType.NORMAL,
+                         BlockType.HEADING,
+                         BlockType.NORMAL,
+                         BlockType.NORMAL
+                         ])
 
 
 

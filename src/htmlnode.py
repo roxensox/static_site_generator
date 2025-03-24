@@ -10,6 +10,7 @@ class HTMLNode:
         raise NotImplementedError()
 
 
+    #TODO: Document this properly, I'm not sure what it does
     def props_to_html(self):
         if self.props:
             out = ""
@@ -30,6 +31,9 @@ class LeafNode(HTMLNode):
 
 
     def to_html(self):
+        '''
+        Writes the node's contents to an html string
+        '''
         if not self.tag:
             return self.value
         else:
@@ -42,6 +46,9 @@ class ParentNode(HTMLNode):
 
 
     def to_html(self):
+        '''
+        Writes the node and its children to an html string
+        '''
         if not self.tag:
             raise ValueError("Parent nodes require tags")
         if not self.children:

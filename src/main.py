@@ -88,8 +88,8 @@ def generate_pages_recursive(dir_path_content, template_path, dest_dir_path, bas
         else:
             # If the item is a markdown file, this generates the html page while copying
             if item.suffix == ".md":
-                dest_dir_path = re.sub(".md$", ".html", dest_dir_path, basepath)
-                generate_page(item, TEMPLATE, dest_dir_path)
+                dest_dir_path = re.sub(".md$", ".html", dest_dir_path)
+                generate_page(item, TEMPLATE, dest_dir_path, basepath)
             # Otherwise, just copies it over
             else:
                 shutil.copy(item, dest_dir_path)
@@ -98,7 +98,7 @@ def generate_pages_recursive(dir_path_content, template_path, dest_dir_path, bas
 
 
 def main():
-    basepath = sys.argv[0]
+    basepath = sys.argv[1] if len(sys.argv) > 1 else "/"
     index = os.path.join(PROJECT, "content/index.md")
     destination = os.path.join(DOCS, "index.html")
     content = os.path.join(PROJECT, "content")

@@ -4,7 +4,6 @@ import split_block
 import re, os, shutil, pathlib, sys
 from config import PROJECT, PUBLIC, STATIC, TEMPLATE, DOCS
 
-BASEPATH = sys.argv[0]
 
 def rm_r(folder):
     items = os.listdir(folder)
@@ -52,7 +51,7 @@ def extract_title(markdown):
         return re.sub("^# ", "", title)
 
 
-def generate_page(from_path, template_path, dest_path):
+def generate_page(from_path, template_path, dest_path, basepath):
     print(f"Generating page from {from_path} to {dest_path} using {template_path}")
     with open(from_path, "r") as md, open(template_path, "r") as template, open(dest_path, "w") as output:
         md = "".join([i for i in md.readlines()])
@@ -63,12 +62,12 @@ def generate_page(from_path, template_path, dest_path):
         out = template
         out = re.sub("{{ Title }}", title, out)
         out = re.sub("{{ Content }}", html_node, out)
-        out = re.sub('href="/', f'href="{BASEPATH}', out)
-        out = re.sub('src="/', f'src="{BASEPATH}', out)
+        out = re.sub('href="/', f'href="{basepath}', out)
+        out = re.sub('src="/', f'src="{basepath}', out)
         output.write(out)
 
 
-def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path, basepath):
     '''
     Recursively copies the contents of the content folder to the public folder in HTML form
     '''
@@ -84,28 +83,28 @@ def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
             contents = [i for i in pathlib.Path(item).iterdir()]
             if not os.path.exists(dest_dir_path):
                 os.mkdir(dest_dir_path)
-            generate_pages_recursive(contents, TEMPLATE, dest_dir_path)
+            generate_pages_recursive(contents, TEMPLATE, dest_dir_path, basepath)
         # Otherwise, copies the file over
         else:
             # If the item is a markdown file, this generates the html page while copying
             if item.suffix == ".md":
-                dest_dir_path = re.sub(".md$", ".html", dest_dir_path)
+                dest_dir_path = re.sub(".md$", ".html", dest_dir_path, basepath)
                 generate_page(item, TEMPLATE, dest_dir_path)
             # Otherwise, just copies it over
             else:
                 shutil.copy(item, dest_dir_path)
     # Removes the finished item from the list and recurses
-    generate_pages_recursive(dir_path_content[1:], template_path, dest_dir_path)
+    generate_pages_recursive(dir_path_content[1:], template_path, dest_dir_path, basepath)
 
 
 def main():
-    basepath = sys.argv[0] if sys.argv[0] else "/"
+    basepath = sys.argv[0]
     index = os.path.join(PROJECT, "content/index.md")
     destination = os.path.join(DOCS, "index.html")
     content = os.path.join(PROJECT, "content")
     copy_contents(STATIC, DOCS)
     initial_contents = [i for i in pathlib.Path(content).iterdir()]
-    generate_pages_recursive(initial_contents, TEMPLATE, DOCS)
+    generate_pages_recursive(initial_contents, TEMPLATE, DOCS, basepath)
 
 
 if __name__ == "__main__":

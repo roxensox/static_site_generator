@@ -4,7 +4,7 @@ import split_block
 import re, os, shutil, pathlib, sys
 from config import PROJECT, PUBLIC, STATIC, TEMPLATE, DOCS
 
-BASEPATH = sys.argv[1] if len(sys.argv) > 1 else "/"
+BASEPATH = sys.argv[0]
 
 def rm_r(folder):
     items = os.listdir(folder)

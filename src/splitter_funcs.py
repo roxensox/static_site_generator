@@ -30,6 +30,9 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
             new_nodes.append(node)
             continue
         matches = re.findall(search_term, node.text)
+        if len(matches) == 0:
+            new_nodes.append(node)
+            continue
         remaining_text = re.sub(search_term, "|;&", node.text)
         match_num = 0
         for i, term in enumerate(remaining_text.split("|;&")):
@@ -44,7 +47,7 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
                     new_nodes.append(TextNode(re.sub(delimiter, "", matches[match_num]), text_type))
                     match_num += 1
 
-    return new_nodes
+    return new_nodes if new_nodes not in [[], None] else old_nodes
 
 
 def extract_markdown_images(text):
@@ -67,6 +70,8 @@ def split_nodes_image(old_nodes):
             new_nodes.append(node)
             continue
         imgs = extract_markdown_images(node.text)
+        if len(imgs) == 0:
+            return old_nodes
         remaining_text = re.sub(pattern, "|;&", node.text)
         match_num = 0
         for i, term in enumerate(remaining_text.split("|;&")):
@@ -91,6 +96,8 @@ def split_nodes_link(old_nodes):
             new_nodes.append(node)
             continue
         links = extract_markdown_links(node.text)
+        if len(links) == 0:
+            return old_nodes
         remaining_text = re.sub(pattern, "|;&", node.text)
         match_num = 0
         for i, term in enumerate(remaining_text.split("|;&")):
@@ -108,11 +115,18 @@ def split_nodes_link(old_nodes):
 
 
 def text_to_text_nodes(text):
+    check = False
+    if "legendarium" in text:
+        check = True
     out_nodes = [TextNode(text, TextType.TEXT)]
     out_nodes = split_nodes_image(out_nodes)
     out_nodes = split_nodes_link(out_nodes)
     out_nodes = split_nodes_delimiter(out_nodes, r"\*\*", TextType.BOLD)
+    if check:
+        print(out_nodes)
     out_nodes = split_nodes_delimiter(out_nodes, "_", TextType.ITALIC)
+    if check:
+        print(out_nodes)
     out_nodes = split_nodes_delimiter(out_nodes, "`", TextType.CODE)
     return out_nodes
 

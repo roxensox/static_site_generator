@@ -1,12 +1,9 @@
 from textnode import TextNode, TextType
 from htmlnode import HTMLNode, LeafNode, ParentNode
+import split_block
+import pathlib
 import re, os, shutil
-
-
-project = os.path.dirname(os.path.abspath(__name__))
-public = os.path.join(project, "public")
-static = os.path.join(project, "static")
-
+from config import PROJECT, PUBLIC, STATIC, TEMPLATE
 
 def rm_r(folder):
     items = os.listdir(folder)
@@ -20,13 +17,14 @@ def rm_r(folder):
     else:
         return
 
-def copy_contents(src, dest, depth):
+def copy_contents(src, dest, depth=0):
     if depth <= 1:
         rm_r(dest)
 
     src_items = os.listdir(src)
     dest_items = os.listdir(dest)
     copy_items = [i for i in src_items if i not in dest_items]
+
     if len(copy_items) > 0:
         item = copy_items[0]
     else:
@@ -53,5 +51,53 @@ def extract_title(markdown):
         return re.sub("^# ", "", title)
 
 
+def generate_page(from_path, template_path, dest_path):
+    print(f"Generating page from {from_path} to {dest_path} using {template_path}")
+    with open(from_path, "r") as md, open(template_path, "r") as template, open(dest_path, "w") as output:
+        md = "".join([i for i in md.readlines()])
+        template = "".join([i for i in template.readlines()])
+        title = extract_title(md)
+        html_node = split_block.markdown_to_html_node(md)
+        html_node = html_node.to_html()
+        out = template
+        out = re.sub("{{ Title }}", title, out)
+        out = re.sub("{{ Content }}", html_node, out)
+        output.write(out)
+
+
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
+    '''
+    Recursively copies the contents of the content folder to the public folder in HTML form
+    '''
+    if dir_path_content == []:
+        return
+    else:
+        # Gets the first item in the directory
+        item = dir_path_content[0]
+        # Uses regex to update the destination path
+        dest_dir_path = re.sub("/content/", "/public/", str(item))
+        # Recurses on the item if the item is a directory
+        if pathlib.Path(item).is_dir():
+            contents = [i for i in pathlib.Path(item).iterdir()]
+            if not os.path.exists(dest_dir_path):
+                os.mkdir(dest_dir_path)
+            generate_pages_recursive(contents, TEMPLATE, dest_dir_path)
+        # Otherwise, copies the file over
+        else:
+            # If the item is a markdown file, this generates the html page while copying
+            if item.suffix == ".md":
+                dest_dir_path = re.sub(".md$", ".html", dest_dir_path)
+                generate_page(item, TEMPLATE, dest_dir_path)
+            # Otherwise, just copies it over
+            else:
+                shutil.copy(item, dest_dir_path)
+    # Removes the finished item from the list and recurses
+    generate_pages_recursive(dir_path_content[1:], template_path, dest_dir_path)
+
+
 if __name__ == "__main__":
-    copy_contents(static, public, 0)
+    index = os.path.join(PROJECT, "content/index.md")
+    destination = os.path.join(PUBLIC, "index.html")
+    content = os.path.join(PROJECT, "content")
+    copy_contents(STATIC, PUBLIC)
+    generate_pages_recursive([i for i in pathlib.Path(content).iterdir()], TEMPLATE, PUBLIC)

@@ -3,6 +3,7 @@ import re
 import math
 from htmlnode import HTMLNode, ParentNode, LeafNode
 from splitter_funcs import text_node_to_html_node, text_to_text_nodes
+from config import PROJECT, PUBLIC, STATIC
 
 def markdown_to_blocks(markdown):
     markdown_blocks = markdown.split("\n\n")
@@ -33,7 +34,8 @@ def block_to_block_type(block):
 
 
 def line_to_children(line):
-    return [text_node_to_html_node(i) for i in text_to_text_nodes(line)]
+    out = [text_node_to_html_node(i) for i in text_to_text_nodes(line)]
+    return out
 
 
 def markdown_to_html_node(markdown):
@@ -66,6 +68,7 @@ def markdown_to_html_node(markdown):
                 continue
             case BlockType.QUOTE:
                 lines = [re.sub("^>", "", i) for i in block.split("\n")]
+                lines = [i.strip() for i in lines]
                 node = ParentNode("blockquote", [])
                 for line in lines:
                     node.children.extend(line_to_children(line))
@@ -76,7 +79,6 @@ def markdown_to_html_node(markdown):
                 node = ParentNode("p", [])
                 node.children.extend(line_to_children(line))
                 main_node.children.append(node)
-
 
     return main_node
 

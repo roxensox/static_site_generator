@@ -98,7 +98,7 @@ def generate_pages_recursive(dir_path_content, template_path, dest_dir_path, bas
 
 
 def main():
-    basepath = sys.argv[1] if len(sys.argv) > 1 else "/"
+    basepath = sys.argv[2] if len(sys.argv) > 2 else "/"
     index = os.path.join(PROJECT, "content/index.md")
     destination = os.path.join(DOCS, "index.html")
     content = os.path.join(PROJECT, "content")

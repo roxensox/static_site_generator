@@ -116,17 +116,11 @@ def split_nodes_link(old_nodes):
 
 def text_to_text_nodes(text):
     check = False
-    if "legendarium" in text:
-        check = True
     out_nodes = [TextNode(text, TextType.TEXT)]
     out_nodes = split_nodes_image(out_nodes)
     out_nodes = split_nodes_link(out_nodes)
     out_nodes = split_nodes_delimiter(out_nodes, r"\*\*", TextType.BOLD)
-    if check:
-        print(out_nodes)
     out_nodes = split_nodes_delimiter(out_nodes, "_", TextType.ITALIC)
-    if check:
-        print(out_nodes)
     out_nodes = split_nodes_delimiter(out_nodes, "`", TextType.CODE)
     return out_nodes
 

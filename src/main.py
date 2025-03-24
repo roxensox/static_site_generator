@@ -1,9 +1,10 @@
 from textnode import TextNode, TextType
 from htmlnode import HTMLNode, LeafNode, ParentNode
 import split_block
-import pathlib
-import re, os, shutil
-from config import PROJECT, PUBLIC, STATIC, TEMPLATE
+import re, os, shutil, pathlib, sys
+from config import PROJECT, PUBLIC, STATIC, TEMPLATE, DOCS
+
+BASEPATH = sys.argv[0] if "main.py" not in sys.argv[0] else "/"
 
 def rm_r(folder):
     items = os.listdir(folder)
@@ -62,6 +63,8 @@ def generate_page(from_path, template_path, dest_path):
         out = template
         out = re.sub("{{ Title }}", title, out)
         out = re.sub("{{ Content }}", html_node, out)
+        out = re.sub('href="/', f'href="{BASEPATH}', out)
+        out = re.sub('src="/', f'src="{BASEPATH}', out)
         output.write(out)
 
 
@@ -75,7 +78,7 @@ def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
         # Gets the first item in the directory
         item = dir_path_content[0]
         # Uses regex to update the destination path
-        dest_dir_path = re.sub("/content/", "/public/", str(item))
+        dest_dir_path = re.sub("/content/", "/docs/", str(item))
         # Recurses on the item if the item is a directory
         if pathlib.Path(item).is_dir():
             contents = [i for i in pathlib.Path(item).iterdir()]
@@ -95,9 +98,15 @@ def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
     generate_pages_recursive(dir_path_content[1:], template_path, dest_dir_path)
 
 
-if __name__ == "__main__":
+def main():
+    basepath = sys.argv[0] if sys.argv[0] else "/"
     index = os.path.join(PROJECT, "content/index.md")
-    destination = os.path.join(PUBLIC, "index.html")
+    destination = os.path.join(DOCS, "index.html")
     content = os.path.join(PROJECT, "content")
-    copy_contents(STATIC, PUBLIC)
-    generate_pages_recursive([i for i in pathlib.Path(content).iterdir()], TEMPLATE, PUBLIC)
+    copy_contents(STATIC, DOCS)
+    initial_contents = [i for i in pathlib.Path(content).iterdir()]
+    generate_pages_recursive(initial_contents, TEMPLATE, DOCS)
+
+
+if __name__ == "__main__":
+    main()
